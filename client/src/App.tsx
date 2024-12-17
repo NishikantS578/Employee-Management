@@ -1,29 +1,27 @@
-import { BrowserRouter, Link, Route, Routes } from 'react-router'
+import { Route, Routes } from 'react-router'
 import './App.css'
-import CreateEmployee from './pages/CreateEmployee'
-import Employee from './pages/Employee'
-import EmployeeList from './pages/EmployeeList'
-import Login from './pages/Login'
 import Home from './pages/Home'
+import NavBar from './components/NavBar'
+import EmployeeList from './pages/EmployeeList';
+import Login from './pages/Login';
 
 function App() {
+  const navItems = [
+    { name: 'Home', route: "/", icon: <></> },
+    { name: 'Employee List', route: "employee_list", icon: <></> },
+  ];
+
   return (
-    <BrowserRouter>
-      <nav>
-        <Link to='/'><img className='h-[100px] w-[100px]' src='/favicon.ico'></img></Link>
-        <Link to='/create-employee'>Create Employee</Link>
-        <Link to='/employees'>Employee List</Link>
-        <Link to='/employee'>Employee</Link>
-        <Link to='/login'>Login</Link>
-      </nav>
+    <>
+      <NavBar appName='EMS' navItems={navItems}></NavBar>
+
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/create-employee" element={<CreateEmployee />} />
-        <Route path="/employees" element={<EmployeeList />} />
-        <Route path="/employee" element={<Employee />} />
-        <Route path="/login" element={<Login />} />
+        <Route path='/' element={<Home></Home>}></Route>
+        <Route path='/employee_list' element={<EmployeeList></EmployeeList>}></Route>
+        <Route path='/login' element={<Login></Login>}></Route>
+        <Route path='*' element={<>Page Not Exists</>}></Route>
       </Routes>
-    </BrowserRouter>
+    </>
   )
 }
 
