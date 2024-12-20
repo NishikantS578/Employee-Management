@@ -1,10 +1,11 @@
-import { Add, CheckBox, Person, Search } from "@mui/icons-material";
-import { Alert, Avatar, Box, Button, Container, Dialog, DialogContent, DialogTitle, FormControl, FormControlLabel, FormGroup, FormLabel, IconButton, Input, InputLabel, MenuItem, Paper, Radio, RadioGroup, Select, Snackbar, Stack, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TablePagination, TableRow, TextField, Typography } from "@mui/material";
+import { Add, FirstPage, ForkLeft, KeyboardArrowLeft, KeyboardArrowRight, LastPage, Search } from "@mui/icons-material";
+import { Alert, Avatar, Box, Button, Container, FormControl, FormLabel, IconButton, Paper, Snackbar, Table, TableBody, TableCell, TableContainer, TableFooter, TableHead, TablePagination, TableRow, TextField, Typography } from "@mui/material";
 import React, { useContext, useEffect, useState } from "react";
 import CreateEmployeeDialog from "../components/CreateEmployeeDialog";
 import { appContext } from "../context/AppContext";
 import { useNavigate } from "react-router";
 import EditEmployeeDialog from "../components/EditEmployeeDialog";
+import { TablePaginationActionsProps } from "@mui/material/TablePagination/TablePaginationActions";
 
 export default function EmployeeList() {
     const context = useContext(appContext);
@@ -13,12 +14,14 @@ export default function EmployeeList() {
     const [employeeData, setEmployeeData] = useState<{ id: string, img: any, firstName: string, lastName: string, email: string, mobile: string, designation: string, gender: string, course: string, createDate: Date }[]>([]);
 
     const [totalDocumentCount, setTotalDocumentCount] = useState(0);
+    const [currentTotalDocumentCount, setCurrentTotalDocumentCount] = useState(0);
 
     const [search, setSearch] = useState("");
 
     const [editingEmployee, setEditingEmployee] = useState<{ id: string, img: any, firstName: string, lastName: string, email: string, mobile: string, designation: string, gender: string, course: string, createDate: Date }>();
 
-    const [rowsPerPage, setRowsPerPage] = useState<10 | 25 | 50 | 100>(10);
+    const [rowsPerPage, setRowsPerPage] = useState<1 | 5 | 10>(5);
+    const [currentPage, setCurrentPage] = useState(0);
 
     const [isSuccessfullEmployeeCreationAlertShown, setIsSuccessfullEmployeeCreationAlertShown] = useState(false);
 
@@ -40,9 +43,12 @@ export default function EmployeeList() {
 
     const handleSearch = (e: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        fetch(context.serverUrl + "/employee?search=" + search)
+        fetch(`${context.serverUrl}/employee?search=${search}&l=${rowsPerPage}&s=${currentPage}`)
             .then((res) => res.json())
-            .then((data) => { setEmployeeData(data.data) });
+            .then((data) => {
+                setEmployeeData(data.data);
+                setCurrentTotalDocumentCount(data.totalDocumentCount);
+            });
     }
 
     const handleOpenEditEmployee = (employeeData: { id: string, img: any, firstName: string, lastName: string, email: string, mobile: string, designation: string, gender: string, course: string, createDate: Date }) => {
@@ -71,15 +77,27 @@ export default function EmployeeList() {
             return;
         }
 
-        fetch(context.serverUrl + "/employee")
+        fetch(`${context.serverUrl}/employee?l=${rowsPerPage}&s=${currentPage}`)
             .then((res) => res.json())
             .then((data) => {
                 setEmployeeData(data.data)
                 setTotalDocumentCount(data.totalDocumentCount);
+                setCurrentTotalDocumentCount(data.totalDocumentCount);
             });
     }
 
-    useEffect(getEmployeeData, []);
+    useEffect(() => {
+        if (search) {
+            fetch(`${context.serverUrl}/employee?search=${search}&l=${rowsPerPage}&s=${currentPage}`)
+                .then((res) => res.json())
+                .then((data) => {
+                    setEmployeeData(data.data);
+                    setCurrentTotalDocumentCount(data.totalDocumentCount);
+                });
+            return;
+        }
+        getEmployeeData()
+    }, [rowsPerPage, currentPage]);
 
     return <Container sx={{ overflow: "clip" }}>
         <Snackbar open={isSuccessfullEmployeeCreationAlertShown} onClose={() => setIsSuccessfullEmployeeCreationAlertShown(false)}>
@@ -205,7 +223,21 @@ export default function EmployeeList() {
                 </TableBody>
                 <TableFooter>
                     <TableRow>
-                        <TablePagination align="left" count={totalDocumentCount} onPageChange={() => { }} page={0} rowsPerPage={rowsPerPage} onRowsPerPageChange={(e) => { setRowsPerPage(Number(e.target.value) as any) }} sx={{ "& .MuiTablePagination-spacer": { display: "none", } }}></TablePagination>
+                        <TablePagination
+                            rowsPerPageOptions={[1, 5, 10]}
+                            count={currentTotalDocumentCount}
+                            rowsPerPage={rowsPerPage}
+                            page={currentPage}
+                            onPageChange={(e, newPage: number) => { setCurrentPage(newPage) }}
+                            onRowsPerPageChange={(e) => { setRowsPerPage(Number(e.target.value) as any) }}
+                            ActionsComponent={(props: TablePaginationActionsProps) => <Box paddingLeft={2}>
+                                <IconButton onClick={() => setCurrentPage(0)} disabled={currentPage == 0}><FirstPage /></IconButton>
+                                <IconButton onClick={() => setCurrentPage((prev) => prev - 1)} disabled={currentPage == 0}><KeyboardArrowLeft /></IconButton>
+                                <IconButton onClick={() => setCurrentPage((prev) => prev + 1)} disabled={currentPage == (currentTotalDocumentCount / rowsPerPage - 1)}><KeyboardArrowRight /></IconButton>
+                                <IconButton onClick={() => setCurrentPage(currentTotalDocumentCount / rowsPerPage - 1)} disabled={currentPage == (currentTotalDocumentCount / rowsPerPage - 1)}><LastPage /></IconButton>
+                            </Box>}
+                            sx={{ "& .MuiTablePagination-spacer": { display: "none", } }}
+                        />
                     </TableRow>
                 </TableFooter>
             </Table>

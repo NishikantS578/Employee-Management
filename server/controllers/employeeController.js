@@ -3,9 +3,10 @@ const Employee = require("../models/EmployeeModel")
 
 async function getEmployee(req, res, next) {
     try {
-        const { id, search } = req.query;
+        const { id, search, l, s } = req.query;
 
         let data;
+        let totalDocumentCount = 0;
 
         if (id) {
             let data = await Employee.findById(id);
@@ -19,17 +20,26 @@ async function getEmployee(req, res, next) {
                     { Mobile: new RegExp(".*" + search.split("").join(".*") + ".*", "i") },
                     { Email: new RegExp(".*" + search.split("").join(".*") + ".*", "i") },
                 ]
-            });
+            }).skip(s * l).limit(l);
+
+            totalDocumentCount = await Employee.countDocuments({
+                $or: [
+                    { FirstName: new RegExp(".*" + search.split("").join(".*") + ".*", "i") },
+                    { LastName: new RegExp(".*" + search.split("").join(".*") + ".*", "i") },
+                    { Mobile: new RegExp(".*" + search.split("").join(".*") + ".*", "i") },
+                    { Email: new RegExp(".*" + search.split("").join(".*") + ".*", "i") },
+                ]
+            })
 
             data = employeeData.map((data) => { return { id: data._id, img: data.Image, firstName: data.FirstName, lastName: data.LastName, email: data.Email, mobile: data.Mobile, designation: data.Designation, gender: data.Gender, course: data.Course, createDate: data.Createdate } });
         }
         else {
-            let employeeData = await Employee.find();
+            let employeeData = await Employee.find().skip(s * l).limit(l);
 
             data = employeeData.map((data) => { return { id: data._id, img: data.Image, firstName: data.FirstName, lastName: data.LastName, email: data.Email, mobile: data.Mobile, designation: data.Designation, gender: data.Gender, course: data.Course, createDate: data.Createdate } });
-        }
 
-        const totalDocumentCount = await Employee.countDocuments();
+            totalDocumentCount = await Employee.countDocuments();
+        }
 
         return res.status(200).send({ success: true, msg: "Successfully retrieved Employee.", data: data, totalDocumentCount });
     }
@@ -71,7 +81,7 @@ async function updateEmployee(req, res, next) {
             { new: true }
         );
 
-        return res.status(201).send({ success: true, msg: "Successfully updated Employee.", data: {id: data.id, firstName: data.FirstName, lastName: data.LastName, email: data.Email, mobile: data.Mobile, designation: data.Designation, gender: data.Gender, course: data.Course, image: data.Image} });
+        return res.status(201).send({ success: true, msg: "Successfully updated Employee.", data: { id: data.id, firstName: data.FirstName, lastName: data.LastName, email: data.Email, mobile: data.Mobile, designation: data.Designation, gender: data.Gender, course: data.Course, image: data.Image } });
     }
     catch (err) {
         console.log(err);
@@ -85,7 +95,7 @@ async function deleteEmployee(req, res, next) {
 
         const data = await Employee.findByIdAndDelete(id);
 
-        return res.status(200).send({ success: true, msg: "Successfully deleted Employee."});
+        return res.status(200).send({ success: true, msg: "Successfully deleted Employee." });
     }
     catch (err) {
         console.log(err);
