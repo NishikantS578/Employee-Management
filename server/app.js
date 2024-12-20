@@ -10,7 +10,7 @@ require("./configs/db");
 const app = express();
 const port = 3001;
 
-app.use(bodyParser.json());
+app.use(bodyParser.json({limit: '10mb'}));
 app.use(cors());
 
 app.use("/api", indexRouter);

@@ -10,6 +10,7 @@ export default function Home() {
     useEffect(() => {
         if (context.isLoggedIn == false) {
             navigate("/login");
+            return;
         }
     }, []);
 

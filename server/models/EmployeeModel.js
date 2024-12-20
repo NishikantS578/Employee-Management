@@ -4,9 +4,12 @@ const employeeSchema = new mongoose.Schema({
     Image: {
         type: Buffer,
         required: true,
-        
     },
-    Name: {
+    FirstName: {
+        type: String,
+        required: true,
+    },
+    LastName: {
         type: String,
         required: true,
     },
@@ -16,19 +19,19 @@ const employeeSchema = new mongoose.Schema({
         unique: true,
     },
     Mobile: {
-        type: Number,
-        min: 1000000000,
-        max: 9999999999,
+        type: String,
+        minlength: 10,
+        maxlength: 10,
         required: true,
     },
     Designation: {
         type: String,
-        enum: ["HR", "Manager", "Sales"],
+        enum: ["HR", "MANAGER", "SALES"],
         require: true,
     },
     Gender: {
         type: String,
-        enum: ["M", "F"],
+        enum: ["MALE", "FEMALE", "OTHER"],
         require: true,
     },
     Course: {

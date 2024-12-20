@@ -17,6 +17,18 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+@media (min-width: 600px) {
+  ::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: rgba(169, 169, 169, 0.623);
+    outline: 1px solid slategrey;
+    border-radius: 50px;
+  }
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     --primary-color: white;
